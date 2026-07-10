@@ -1,4 +1,4 @@
 streamlit
-astropy
+pandas
 numpy
-pillow
+plotly
