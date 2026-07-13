@@ -157,3 +157,4 @@ with col1:
     fig_reddening.update_layout(xaxis_range=[-0.5, 2.2])
 
     st.plotly_chart(fig_reddening, use_container_width=True)
+
