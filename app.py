@@ -4,10 +4,10 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 
-# 1. 페이지 설정 및 레이아웃 (우주 느낌의 다크 모드 권장)
+# 1. 페이지 설정 및 레이아웃 (우주 느낌의 아이콘과 와이드 레이아웃)
 st.set_page_config(page_title="Interstellar Extinction Analyser", layout="wide", page_icon="🌌")
 
-# 사이드바 스타일 및 메인 타이틀을 조금 더 SF/연구소 느낌으로 데코레이션
+# 대시보드 메인 타이틀 - 연구소/관측소 전문 분석 장비 느낌의 텍스트
 st.title("🌌 성간 소광 및 적색화 정밀 분석 시스템")
 st.caption("Interstellar Extinction & Reddening Analysis Dashboard (V1.2)")
 
@@ -15,6 +15,7 @@ st.markdown("""
 이 시뮬레이터는 우주 티끌(Interstellar Dust)로 인해 발생하는 **성간 소광(Extinction)** 및 **적색화(Reddening)** 현상을 물리적 수식에 기반하여 정밀 분석합니다. 
 특히 시선 방향의 거리에 따라 누적되는 성간 물질의 밀도를 계산하여, 실제 천체 관측에서 발생하는 **거리 측정 오차를 정량적으로 추적**합니다.
 """)
+st.markdown("---")
 
 # 2. 데이터 로드 (실제 천체의 물리량 반영 및 가상 데이터 최적화)
 @st.cache_data
@@ -70,7 +71,7 @@ df["거리 왜곡 오차율 (%)"] = np.round(
 )
 
 
-# 5. 메인 대시보드 시각화 (다크 테마 적용)
+# 5. 메인 대시보드 시각화
 st.subheader("📊 실시간 관측 시뮬레이션 및 데이터 스트림")
 
 # 상단 데이터 프레임 요약 데이터 제공
@@ -83,7 +84,7 @@ st.markdown("---")
 
 col1, col2 = st.columns([1, 1])
 
-# 왼쪽 열: 천문학의 꽃, H-R도 상에서의 소광 효과
+# 왼쪽 열: 천문학의 꽃, H-R도 상에서의 소광 효과 (오류 가능성 완벽 차단 및 심우주 컬러 커스텀)
 with col1:
     st.markdown("### 🌌 H-R도 상의 등급 및 색지수 변화 (적색화 경로)")
     st.caption("성간 물질 때문에 별이 본래 위치(하늘색 원)에서 오른쪽 아래(빨간 십자가)로 치우쳐 관측됩니다.")
@@ -91,7 +92,7 @@ with col1:
     fig_hr = go.Figure()
     
     for idx, row in df.iterrows():
-        # 1. 고유 위치 (소광 전) - 안전하게 일반 circle에 테두리 스타일 적용
+        # 1. 고유 위치 (소광 전) - 안전하게 속이 빈 원 스타일 주입
         fig_hr.add_trace(go.Scatter(
             x=[row["고유 색지수 (B-V)₀"]], 
             y=[row["절대 등급 (M_V)"]],
@@ -99,8 +100,8 @@ with col1:
             name=f"{row['별 이름']} (Original)",
             marker=dict(
                 size=12, 
-                color='rgba(0,0,0,0)',  # 속을 투명하게 만듭니다
-                line=dict(width=2, color='#00CCFF') # 하늘색 테두리
+                color='rgba(0,0,0,0)', 
+                line=dict(width=2, color='#00CCFF')
             ),
             showlegend=True
         ))
@@ -124,17 +125,28 @@ with col1:
             showlegend=False
         ))
         
-    # 축 설정과 스타일을 가장 표준적이고 안전한 방식으로 선언
+    # 에러를 일으키던 template 옵션을 지우고 완벽한 딥블랙 우주 배경을 수동 구현
     fig_hr.update_layout(
-        template="plotly_dark",
-        xaxis=dict(title="색지수 (B-V) [우측일수록 저온/적색]"),
-        yaxis=dict(title="절대등급 (M_V) [위쪽일수록 고광도]", autorange="reverse"),
+        paper_bgcolor='rgba(10, 10, 15, 1)',  # 심우주 배경색
+        plot_bgcolor='rgba(10, 10, 15, 1)',   # 그래프 내부 배경색
+        font=dict(color='white'),             # 텍스트 흰색 전환
+        xaxis=dict(
+            title="색지수 (B-V) [우측일수록 저온/적색]",
+            gridcolor='rgba(255, 255, 255, 0.1)', # 성운 느낌의 격자선
+            zerolinecolor='rgba(255, 255, 255, 0.2)'
+        ),
+        yaxis=dict(
+            title="절대등급 (M_V) [위쪽일수록 고광도]",
+            autorange="reverse",              # H-R도 특성 반영 (Y축 뒤집기)
+            gridcolor='rgba(255, 255, 255, 0.1)',
+            zerolinecolor='rgba(255, 255, 255, 0.2)'
+        ),
         height=450,
         margin=dict(l=50, r=50, t=50, b=50)
     )
     st.plotly_chart(fig_hr, use_container_width=True)
 
-# 오른쪽 열: 3D 관점에서 본 거리 왜곡 현상
+# 오른쪽 열: 거리 왜곡 비교 그래프
 with col2:
     st.markdown("### 📐 시선 방향 거리 측정 왜곡 비교")
     st.caption("붉은 막대(왜곡된 거리)가 푸른 막대(실제 거리)보다 비정상적으로 길어지는 현상을 확인하세요.")
@@ -149,12 +161,22 @@ with col2:
         name="소광 무시 추정 거리 (Apparent Distance)", marker_color="#FF3366"
     ))
     
+    # 동일하게 템플릿 의존성을 제거하고 딥블랙 우주 테마 적용
     fig_distance.update_layout(
-        template="plotly_dark",
+        paper_bgcolor='rgba(10, 10, 15, 1)',
+        plot_bgcolor='rgba(10, 10, 15, 1)',
+        font=dict(color='white'),
         barmode='group',
-        xaxis_title="관측 대상 천체",
-        yaxis_title="거리 단위 (pc)",
-        height=450
+        xaxis=dict(
+            title="관측 대상 천체",
+            gridcolor='rgba(255, 255, 255, 0.1)'
+        ),
+        yaxis=dict(
+            title="거리 단위 (pc)",
+            gridcolor='rgba(255, 255, 255, 0.1)'
+        ),
+        height=450,
+        margin=dict(l=50, r=50, t=50, b=50)
     )
     st.plotly_chart(fig_distance, use_container_width=True)
 
@@ -167,11 +189,11 @@ col_info1, col_info2 = st.columns([1, 1])
 
 with col_info1:
     st.markdown("""
-    ### 🌌 파장 의존적 산란과 레이리-미 산란 (Rayleigh & Mie Scattering)
+    ### 🌌 파장 의존적 산란과 미 산란 (Mie Scattering)
     성간 적색화가 일어나는 핵심 이유는 성간 티끌의 크기가 **별빛의 파장과 비슷하거나 더 작기 때문**입니다.
-    - **산란 강도 규칙**: 산란 세기는 파장의 4제곱에 반비례($I \propto \lambda^{-4}$)하는 경향을 보입니다. 즉, 푸른빛($\lambda \approx 400\text{nm}$)이 붉은빛($\lambda \approx 700\text{nm}$)보다 훨씬 강하게 산란되어 경로 이탈을 일으킵니다.
+    - **산란 강도 규칙**: 산란 세기는 파장의 4제곱에 반비례($I \\propto \\lambda^{-4}$)하는 경향을 보입니다. 즉, 푸른빛($\\lambda \\approx 400\\text{nm}$)이 붉은빛($\\lambda \\approx 700\\text{nm}$)보다 훨씬 강하게 산란되어 경로 이탈을 일으킵니다.
     - **색초과 수식화**: 이로 인해 관측자가 측정한 색지수는 본래의 고유 색지수보다 무조건 커지게 됩니다.
-      $$E_{B-V} = (B-V)_{\text{obs}} - (B-V)_0 > 0$$
+      $$E_{B-V} = (B-V)_{\\text{obs}} - (B-V)_0 > 0$$
     """)
 
 with col_info2:
@@ -179,7 +201,7 @@ with col_info2:
     ### 🧮 거리지수 공식의 치명적 결함과 우주 거리 사다리
     현대 천문학에서 성간 소광량($A_V$)의 보정은 우주 거리를 측정할 때 가장 핵심적인 단계입니다.
     - **오차 메커니즘**: 소광 항인 $A_V$를 식에서 누락하면 아래 수식에 의해 계산됩니다.
-      $$V - M_V = 5\log_{10}d_{\text{wrong}} - 5$$
-      하지만 실제 올바른 식은 $V - M_V - A_V = 5\log_{10}d_{\text{true}} - 5$ 이므로, 결국 소광량만큼 겉보기 등급 $V$가 커진 것을 별이 그냥 멀리 있어서 어두워진 것으로 오해하게 만듭니다.
+      $$V - M_V = 5\\log_{10}d_{\\text{wrong}} - 5$$
+      하지만 실제 올바른 식은 $V - M_V - A_V = 5\\log_{10}d_{\\text{true}} - 5$ 이므로, 결국 소광량만큼 겉보기 등급 $V$가 커진 것을 별이 그냥 멀리 있어서 어두워진 것으로 오해하게 만듭니다.
     - **결론**: 본 대시보드에서 보듯, 성간 물질의 밀도 계수($k$)가 조금만 증가해도 멀리 있는 천체(예: 카펠라)일수록 오차율이 기하급수적으로 폭증하는 것을 데이터로 입증할 수 있습니다.
     """)
