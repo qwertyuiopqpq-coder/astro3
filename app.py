@@ -176,7 +176,7 @@ with col2:
 
         color="거리 종류", 
 
-        bgroup_mode="group",
+
 
         barmode="group",
 
