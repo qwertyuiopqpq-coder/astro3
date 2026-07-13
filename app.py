@@ -118,10 +118,9 @@ with col1:
         template="plotly_dark",
         xaxis_title="색지수 (B-V) → 대략적인 표면 온도 (우측일수록 저온/적색)",
         yaxis_title="← 고광도 / 등급 변화 (Y축 반전) → 저광도",
-        yaxis_autorange="reverse", # 천문학 HR도는 Y축(등급)이 뒤집혀야 함!
+        yaxis=dict(autorange="reverse"), # yaxis_autorange="reverse" 대신 이 형태로 수정!
         height=450
     )
-    st.plotly_chart(fig_hr, use_container_width=True)
 
 # 오른쪽 열: 3D 관점에서 본 거리 왜곡 현상
 with col2:
