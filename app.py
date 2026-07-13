@@ -114,12 +114,17 @@ with col1:
             showlegend=False
         ))
         
-    fig_hr.update_layout(
+        fig_hr.update_layout(
         template="plotly_dark",
-        xaxis_title="색지수 (B-V) → 대략적인 표면 온도 (우측일수록 저온/적색)",
-        yaxis_title="← 고광도 / 등급 변화 (Y축 반전) → 저광도",
-        yaxis=dict(autorange="reverse"), # yaxis_autorange="reverse" 대신 이 형태로 수정!
-        height=450
+        xaxis=dict(
+            title="색지수 (B-V) [우측일수록 저온/적색 별]"
+        ),
+        yaxis=dict(
+            title="절대등급 (M_V) [위쪽일수록 고광도 별]",
+            autorange="reverse"
+        ),
+        height=450,
+        margin=dict(l=40, r=40, t=40, b=40)
     )
 
 # 오른쪽 열: 3D 관점에서 본 거리 왜곡 현상
