@@ -89,7 +89,7 @@ with col1:
     fig_hr = go.Figure()
     
     for idx, row in df.iterrows():
-        # 1. 고유 위치 (소광 전) - 기본 circle 마커 사용
+        # 1. 고유 위치 (소광 전)
         fig_hr.add_trace(go.Scatter(
             x=[row["고유 색지수 (B-V)₀"]], 
             y=[row["절대 등급 (M_V)"]],
@@ -99,7 +99,7 @@ with col1:
             showlegend=True
         ))
         
-        # 2. 관측 위치 (소광 후 왜곡된 위치) - 안전하게 'cross' 마커 사용
+        # 2. 관측 위치 (소광 후 왜곡된 위치)
         fig_hr.add_trace(go.Scatter(
             x=[row["관측 색지수 (B-V)"]], 
             y=[row["절대 등급 (M_V)"] + row["성간 소광량 (A_V)"]],
@@ -118,7 +118,7 @@ with col1:
             showlegend=False
         ))
         
-    # 커스텀 딥블랙 레이아웃 지정
+    # [수정 완증] autorange="reverse" 대신, 최댓값과 최솟값의 순서를 바꾸어 수동으로 Y축을 안전하게 뒤집음
     fig_hr.update_layout(
         paper_bgcolor='rgba(10, 10, 15, 1)',
         plot_bgcolor='rgba(10, 10, 15, 1)',
@@ -126,13 +126,14 @@ with col1:
         xaxis=dict(
             title="색지수 (B-V) [우측일수록 저온/적색]",
             gridcolor='rgba(255, 255, 255, 0.1)',
-            zerolinecolor='rgba(255, 255, 255, 0.2)'
+            zerolinecolor='rgba(255, 255, 255, 0.2)',
+            range=[-0.3, 1.5]
         ),
         yaxis=dict(
             title="절대등급 (M_V) [위쪽일수록 고광도]",
-            autorange="reverse",
             gridcolor='rgba(255, 255, 255, 0.1)',
-            zerolinecolor='rgba(255, 255, 255, 0.2)'
+            zerolinecolor='rgba(255, 255, 255, 0.2)',
+            range=[4.0, -2.0]  # [큰 값, 작은 값] 순서로 넣으면 에러 없이 무조건 뒤집힘!
         ),
         height=450,
         margin=dict(l=50, r=50, t=50, b=50)
