@@ -78,3 +78,40 @@ with col1:
     
     fig_reddening.update_layout(xaxis_range=[-0.5, 2.2])
     st.plotly_chart(fig_reddening, use_container_width=True)
+
+# 메인 대시보드 5번 영역 하단이나 col2 내부에 배치
+with col2:
+    st.subheader("📐 소광에 의한 거리 왜곡 비교")
+    st.markdown("성간 소광을 고려하지 않으면, 별이 실제보다 훨씬 더 멀리 있는 것으로 오인하게 됩니다.")
+    
+    # 거리 비교를 위한 데이터 재구성 (Tidy data 형식으로 변환)
+    df_melted = df.melt(
+        id_vars=["별 이름"], 
+        value_vars=["실제 거리 (pc)", "소광 무시 겉보기 거리 (pc)"],
+        var_name="거리 종류", 
+        value_name="거리 (pc)"
+    )
+    
+    fig_distance = px.bar(
+        df_melted,
+        x="별 이름",
+        y="거리 (pc)",
+        color="거리 종류",
+        barmode="group",
+        text_auto=True,
+        title="실제 거리 vs 소광을 무시하고 계산한 거리",
+        color_discrete_sequence=["#1f77b4", "#ff7f0e"]
+    )
+    st.plotly_chart(fig_distance, use_container_width=True)
+
+# 하단에 공식 및 데이터 탭 추가
+st.markdown("---")
+tab1, tab2 = st.tabs(["📊 상세 데이터 확인", "✍️ 활용된 천문학 공식"])
+
+with tab1:
+    st.dataframe(df, use_container_width=True)
+
+with tab2:
+    st.latex(r"E(B-V) = (B-V)_{\text{obs}} - (B-V)_0")
+    st.latex(r"A_V = R_V \times E(B-V)")
+    st.latex(r"V = M_V + 5\log_{10}(d) - 5 + A_V")
