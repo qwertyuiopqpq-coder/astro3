@@ -4,10 +4,10 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 
-# 1. 페이지 설정 및 레이아웃 (우주 느낌의 아이콘과 와이드 레이아웃)
+# 1. 페이지 설정 및 레이아웃
 st.set_page_config(page_title="Interstellar Extinction Analyser", layout="wide", page_icon="🌌")
 
-# 대시보드 메인 타이틀 - 연구소/관측소 전문 분석 장비 느낌의 텍스트
+# 대시보드 메인 타이틀
 st.title("🌌 성간 소광 및 적색화 정밀 분석 시스템")
 st.caption("Interstellar Extinction & Reddening Analysis Dashboard (V1.2)")
 
@@ -34,18 +34,15 @@ df = load_star_data()
 st.sidebar.header("🛸 성간 환경 제어 패널")
 st.sidebar.markdown("---")
 
-# 단위 거리(pc)당 소광 계수 (단위: mag/pc) - 실제 은하면 평균은 k = 0.001 ~ 0.002 mag/pc 수준이지만, 
-# 가상의 짧은 거리 데이터(13pc 이내)에서 극적인 시각적 효과를 위해 단위를 조절하여 계수화합니다.
 k_factor = st.sidebar.slider(
     "성간 티끌 밀도 계수 (k)", 
     min_value=0.00, max_value=0.15, value=0.05, step=0.01,
     help="값이 클수록 pc당 빛이 더 많이 차단됩니다. (은하 원반 중심 방향일수록 높은 값)"
 )
 
-# 기본 성간 적색화 법칙 R_V 값 (은하계 평균 3.1)
 rv_value = st.sidebar.number_input("R_V 상수 (선택도 소광비)", min_value=2.0, max_value=5.5, value=3.1, step=0.1)
 
-# 4. 천문학적 정밀 수식 계산 프로세스 (거리 의존성 반영)
+# 4. 천문학적 정밀 수식 계산 프로세스
 # 거리가 멀수록 지나오는 성간 물질이 많아지므로 소광량 A_V = k * 실제거리
 df["성간 소광량 (A_V)"] = np.round(k_factor * df["실제 거리 (pc)"], 3)
 
@@ -55,12 +52,12 @@ df["색초과 (E_B-V)"] = np.round(df["성간 소광량 (A_V)"] / rv_value, 3)
 # 관측되는 색지수 계산
 df["관측 색지수 (B-V)"] = np.round(df["고유 색지수 (B-V)₀"] + df["색초과 (E_B-V)"], 3)
 
-# 포그슨 거리지수 공식 (소광 포함): V = M_V + 5 * log10(d) - 5 + A_V
+# 포그슨 거리지수 공식 (소광 포함)
 df["관측 등급 (V)"] = np.round(
     df["절대 등급 (M_V)"] + 5 * np.log10(df["실제 거리 (pc)"]) - 5 + df["성간 소광량 (A_V)"], 2
 )
 
-# 성간 소광을 무시했을 때 계산되는 잘못된 거리: d_err = 10 ** ((V - M_V + 5) / 5)
+# 소광을 무시했을 때 계산되는 잘못된 거리
 df["소광 무시 겉보기 거리 (pc)"] = np.round(
     10 ** ((df["관측 등급 (V)"] - df["절대 등급 (M_V)"] + 5) / 5), 1
 )
@@ -74,7 +71,7 @@ df["거리 왜곡 오차율 (%)"] = np.round(
 # 5. 메인 대시보드 시각화
 st.subheader("📊 실시간 관측 시뮬레이션 및 데이터 스트림")
 
-# 상단 데이터 프레임 요약 데이터 제공
+# 데이터 프레임 출력
 st.dataframe(
     df[["별 이름", "실제 거리 (pc)", "성간 소광량 (A_V)", "색초과 (E_B-V)", "관측 색지수 (B-V)", "소광 무시 겉보기 거리 (pc)", "거리 왜곡 오차율 (%)"]],
     use_container_width=True
@@ -84,35 +81,31 @@ st.markdown("---")
 
 col1, col2 = st.columns([1, 1])
 
-# 왼쪽 열: 천문학의 꽃, H-R도 상에서의 소광 효과 (오류 가능성 완벽 차단 및 심우주 컬러 커스텀)
+# 왼쪽 열: 천문학의 꽃, H-R도 상에서의 소광 효과
 with col1:
     st.markdown("### 🌌 H-R도 상의 등급 및 색지수 변화 (적색화 경로)")
-    st.caption("성간 물질 때문에 별이 본래 위치(하늘색 원)에서 오른쪽 아래(빨간 십자가)로 치우쳐 관측됩니다.")
+    st.caption("성간 물질 때문에 별이 본래 위치(하늘색)에서 오른쪽 아래(빨간색)로 치우쳐 관측됩니다.")
     
     fig_hr = go.Figure()
     
     for idx, row in df.iterrows():
-        # 1. 고유 위치 (소광 전) - 안전하게 속이 빈 원 스타일 주입
+        # 1. 고유 위치 (소광 전) - 기본 circle 마커 사용
         fig_hr.add_trace(go.Scatter(
             x=[row["고유 색지수 (B-V)₀"]], 
             y=[row["절대 등급 (M_V)"]],
             mode='markers', 
             name=f"{row['별 이름']} (Original)",
-            marker=dict(
-                size=12, 
-                color='rgba(0,0,0,0)', 
-                line=dict(width=2, color='#00CCFF')
-            ),
+            marker=dict(size=12, color='#00CCFF'),
             showlegend=True
         ))
         
-        # 2. 관측 위치 (소광 후 왜곡된 위치)
+        # 2. 관측 위치 (소광 후 왜곡된 위치) - 안전하게 'cross' 마커 사용
         fig_hr.add_trace(go.Scatter(
             x=[row["관측 색지수 (B-V)"]], 
             y=[row["절대 등급 (M_V)"] + row["성간 소광량 (A_V)"]],
             mode='markers', 
             name=f"{row['별 이름']} (Observed)",
-            marker=dict(size=12, color='#FF3366', symbol='x'),
+            marker=dict(size=12, color='#FF3366', symbol='cross'),
             showlegend=False
         ))
         
@@ -125,19 +118,19 @@ with col1:
             showlegend=False
         ))
         
-    # 에러를 일으키던 template 옵션을 지우고 완벽한 딥블랙 우주 배경을 수동 구현
+    # 커스텀 딥블랙 레이아웃 지정
     fig_hr.update_layout(
-        paper_bgcolor='rgba(10, 10, 15, 1)',  # 심우주 배경색
-        plot_bgcolor='rgba(10, 10, 15, 1)',   # 그래프 내부 배경색
-        font=dict(color='white'),             # 텍스트 흰색 전환
+        paper_bgcolor='rgba(10, 10, 15, 1)',
+        plot_bgcolor='rgba(10, 10, 15, 1)',
+        font=dict(color='white'),
         xaxis=dict(
             title="색지수 (B-V) [우측일수록 저온/적색]",
-            gridcolor='rgba(255, 255, 255, 0.1)', # 성운 느낌의 격자선
+            gridcolor='rgba(255, 255, 255, 0.1)',
             zerolinecolor='rgba(255, 255, 255, 0.2)'
         ),
         yaxis=dict(
             title="절대등급 (M_V) [위쪽일수록 고광도]",
-            autorange="reverse",              # H-R도 특성 반영 (Y축 뒤집기)
+            autorange="reverse",
             gridcolor='rgba(255, 255, 255, 0.1)',
             zerolinecolor='rgba(255, 255, 255, 0.2)'
         ),
@@ -154,14 +147,13 @@ with col2:
     fig_distance = go.Figure()
     fig_distance.add_trace(go.Bar(
         x=df["별 이름"], y=df["실제 거리 (pc)"],
-        name="실제 공간 내 거리 (True Distance)", marker_color="#00CCFF"
+        name="실제 공간 내 거리 (True)", marker_color="#00CCFF"
     ))
     fig_distance.add_trace(go.Bar(
         x=df["별 이름"], y=df["소광 무시 겉보기 거리 (pc)"],
-        name="소광 무시 추정 거리 (Apparent Distance)", marker_color="#FF3366"
+        name="소광 무시 추정 거리 (Apparent)", marker_color="#FF3366"
     ))
     
-    # 동일하게 템플릿 의존성을 제거하고 딥블랙 우주 테마 적용
     fig_distance.update_layout(
         paper_bgcolor='rgba(10, 10, 15, 1)',
         plot_bgcolor='rgba(10, 10, 15, 1)',
