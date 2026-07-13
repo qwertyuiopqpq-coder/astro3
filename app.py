@@ -83,49 +83,56 @@ st.markdown("---")
 
 col1, col2 = st.columns([1, 1])
 
-# 왼쪽 열: 천문학의 꽃, H-R도 상에서의 소광 효과 (Professional Vector Plot)
+# 왼쪽 열: 천문학의 꽃, H-R도 상에서의 소광 효과
 with col1:
     st.markdown("### 🌌 H-R도 상의 등급 및 색지수 변화 (적색화 경로)")
-    st.caption("성간 물질 때문에 별이 본래 위치(공)에서 오른쪽 아래(화살표 끝)로 치우쳐 관측됩니다.")
+    st.caption("성간 물질 때문에 별이 본래 위치(하늘색 원)에서 오른쪽 아래(빨간 십자가)로 치우쳐 관측됩니다.")
     
     fig_hr = go.Figure()
     
     for idx, row in df.iterrows():
-        # 고유 위치 (소광 전)
+        # 1. 고유 위치 (소광 전) - 안전하게 일반 circle에 테두리 스타일 적용
         fig_hr.add_trace(go.Scatter(
-            x=[row["고유 색지수 (B-V)₀"]], y=[row["절대 등급 (M_V)"]],
-            mode='markers', name=f"{row['별 이름']} (Original)",
-            marker=dict(size=14, symbol='circle-open', line=dict(width=2, color='cyan')),
+            x=[row["고유 색지수 (B-V)₀"]], 
+            y=[row["절대 등급 (M_V)"]],
+            mode='markers', 
+            name=f"{row['별 이름']} (Original)",
+            marker=dict(
+                size=12, 
+                color='rgba(0,0,0,0)',  # 속을 투명하게 만듭니다
+                line=dict(width=2, color='#00CCFF') # 하늘색 테두리
+            ),
             showlegend=True
         ))
-        # 관측 위치 (소광 후) -> Y축을 절대등급 대신 겉보기등급 변동 관점을 보기 위해 M_V + A_V 형태로 플롯하여 왜곡을 인지시킴
-        # 여기서는 직관성을 위해 '관측으로 인해 변한 겉보기 위치 상태'를 표현하기 위해 축을 구성합니다.
+        
+        # 2. 관측 위치 (소광 후 왜곡된 위치)
         fig_hr.add_trace(go.Scatter(
-            x=[row["관측 색지수 (B-V)"]], y=[row["절대 등급 (M_V)"] + row["성간 소광량 (A_V)"]],
-            mode='markers', name=f"{row['별 이름']} (Observed)",
-            marker=dict(size=14, color='red', symbol='cross'),
-            showlegend=False
-        ))
-        # 이동 화살표선 (적색화 벡터)
-        fig_hr.add_trace(go.Scatter(
-            x=[row["고유 색지수 (B-V)₀"], row["관측 색지수 (B-V)"]],
-            y=[row["절대 등급 (M_V)"], row["절대 등급 (M_V)"] + row["성간 소광량 (A_V)"]],
-            mode='lines', line=dict(color='rgba(255, 255, 255, 0.4)', dash='dash'),
+            x=[row["관측 색지수 (B-V)"]], 
+            y=[row["절대 등급 (M_V)"] + row["성간 소광량 (A_V)"]],
+            mode='markers', 
+            name=f"{row['별 이름']} (Observed)",
+            marker=dict(size=12, color='#FF3366', symbol='x'),
             showlegend=False
         ))
         
-        fig_hr.update_layout(
+        # 3. 이동 화살표선 (적색화 벡터)
+        fig_hr.add_trace(go.Scatter(
+            x=[row["고유 색지수 (B-V)₀"], row["관측 색지수 (B-V)"]],
+            y=[row["절대 등급 (M_V)"], row["절대 등급 (M_V)"] + row["성간 소광량 (A_V)"]],
+            mode='lines', 
+            line=dict(color='rgba(255, 255, 255, 0.3)', dash='dash'),
+            showlegend=False
+        ))
+        
+    # 축 설정과 스타일을 가장 표준적이고 안전한 방식으로 선언
+    fig_hr.update_layout(
         template="plotly_dark",
-        xaxis=dict(
-            title="색지수 (B-V) [우측일수록 저온/적색 별]"
-        ),
-        yaxis=dict(
-            title="절대등급 (M_V) [위쪽일수록 고광도 별]",
-            autorange="reverse"
-        ),
+        xaxis=dict(title="색지수 (B-V) [우측일수록 저온/적색]"),
+        yaxis=dict(title="절대등급 (M_V) [위쪽일수록 고광도]", autorange="reverse"),
         height=450,
-        margin=dict(l=40, r=40, t=40, b=40)
+        margin=dict(l=50, r=50, t=50, b=50)
     )
+    st.plotly_chart(fig_hr, use_container_width=True)
 
 # 오른쪽 열: 3D 관점에서 본 거리 왜곡 현상
 with col2:
