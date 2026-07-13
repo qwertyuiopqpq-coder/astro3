@@ -59,10 +59,12 @@ df["소광 무시 겉보기 거리 (pc)"] = np.round(
 col1, col2 = st.columns([1, 1])
 
 # 왼쪽 열: 성간 적색화 그래프
+
 with col1:
     st.subheader("📊 성간 적색화 현상 (색지수 변화)")
     st.markdown("성간 물질이 밀해질수록 별이 본래 색보다 붉게 관측되어 색지수 값이 커집니다.")
     
+    # 괄호와 인자 구조를 한눈에 보이도록 재정리 (SyntaxError 방지)
     fig_reddening = px.scatter(
         df, 
         x="관측 색지수 (B-V)", 
@@ -70,4 +72,9 @@ with col1:
         color="관측 색지수 (B-V)",
         color_continuous_scale="Bluered",
         range_color=[-0.4, 2.0],
-        size=
+        size=[15, 15, 15, 15, 15],  # 명시적으로 배열 크기 지정
+        title="별의 관측 색지수 위치 (우측일수록 붉은 별)"
+    )
+    
+    fig_reddening.update_layout(xaxis_range=[-0.5, 2.2])
+    st.plotly_chart(fig_reddening, use_container_width=True)
